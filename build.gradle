@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2013, PROS Inc. All right reserved.
+ * Copyright (c) 2018, Patrick Double. All right reserved.
  *
  * Released under BSD-3 style license.
  * See http://opensource.org/licenses/BSD-3-Clause
@@ -10,6 +11,9 @@ apply plugin: 'groovy'
 dependencies {
     compile gradleApi()
     compile localGroovy()
+    compile 'org.zaproxy:zap-clientapi:1.6.0'
+    testCompile 'junit:junit:4.12'
+    testCompile gradleApi()
 }
 
 apply plugin: 'maven'
@@ -30,5 +34,5 @@ uploadArchives {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.8'
+    gradleVersion = '4.10.2'
 }

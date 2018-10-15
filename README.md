@@ -84,6 +84,7 @@ Net::HTTP.new('attackme.example.com', nil, proxy_addr, proxy_port).start { |http
 
 ## LICENSE
 Copyright (c) 2013, PROS Inc. All right reserved.
+Copyright (c) 2018, Patrick Double. All right reserved.
 
 Released under BSD-3 style license.
 
