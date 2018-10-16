@@ -7,5 +7,5 @@ class ZapPluginExtension {
     String reportOutputPath = "zapReport"
     String applicationUrl = ""
     String activeScanTimeout = "30"
-    protected Process zapProc = null
+    protected Process zapProc
 }

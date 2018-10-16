@@ -9,7 +9,8 @@ import org.gradle.api.tasks.TaskAction
  */
 class ZapStart extends DefaultTask {
     @TaskAction
-    def startZap() {
+    @SuppressWarnings("UnusedMethod")
+    void startZap() {
         if (project.zapConfig.zapProc != null)
         {
             return

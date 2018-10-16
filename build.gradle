@@ -22,8 +22,8 @@ repositories {
     mavenCentral()
 }
 
-group = 'com.pros.gradle'
-version = '1.0-SNAPSHOT'
+group = 'com.patdouble.gradle'
+version = '2.0-SNAPSHOT'
 
 uploadArchives {
     repositories {

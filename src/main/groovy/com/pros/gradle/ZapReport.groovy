@@ -8,15 +8,16 @@ import org.gradle.api.tasks.TaskAction
  */
 class ZapReport extends DefaultTask {
     @TaskAction
-    def outputReport() {
-        def format = project.zapConfig.reportFormat
-        def url = new URL("http://zap/${format}/core/view/alerts/?zapapiformat=${format}&baseurl=${project.zapConfig.applicationUrl}")
+    @SuppressWarnings("UnusedMethod")
+    void outputReport() {
+        String format = project.zapConfig.reportFormat
+        URL url = new URL("http://zap/${format}/core/view/alerts/?zapapiformat=${format}&baseurl=${project.zapConfig.applicationUrl}")
 
-        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("localhost", project.zapConfig.proxyPort.toInteger()));
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress('localhost', project.zapConfig.proxyPort.toInteger()))
         def connection = url.openConnection(proxy)
-        def response = connection.content.text
+        String response = connection.content.text
 
-        File report = new File(project.zapConfig.reportOutputPath)
+        File report = new File(project.zapConfig.reportOutputPath as String)
         report.write(response)
     }
 }

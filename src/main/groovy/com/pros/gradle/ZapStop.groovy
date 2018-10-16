@@ -5,7 +5,8 @@ import org.gradle.api.tasks.TaskAction
 
 class ZapStop extends DefaultTask {
     @TaskAction
-    def stopZap() {
+    @SuppressWarnings("UnusedMethod")
+    void stopZap() {
         if (project.zapConfig.zapProc != null)
         {
             // Kill the process after waiting 1ms. The Process API doesn't expose kill directly.
