@@ -1,5 +1,7 @@
 package com.pros.gradle
 
+import de.undercouch.gradle.tasks.download.Download
+
 import static org.junit.Assert.*
 
 import org.gradle.api.Project
@@ -30,6 +32,7 @@ class ZapPluginTest {
 
 
     private verifyPlugin() {
+        assertTrue(project.tasks.zapDownload instanceof Download)
         assertTrue(project.tasks.zapStart instanceof ZapStart)
         assertTrue(project.tasks.zapStart.finalizedBy.mutableValues.contains('zapStop'))
         assertTrue(project.tasks.zapActiveScan instanceof ZapActiveScan)
