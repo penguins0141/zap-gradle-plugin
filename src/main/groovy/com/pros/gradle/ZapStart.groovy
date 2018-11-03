@@ -25,7 +25,7 @@ class ZapStart extends DefaultTask {
         def errorOutput = new ByteArrayOutputStream()
         ProcessBuilder builder = new ProcessBuilder(
             workingDir+File.separator+(Os.isFamily(Os.FAMILY_WINDOWS) ? "zap.bat":"zap.sh"),
-            "-daemon", "-port", project.zapConfig.proxyPort, "-config", "api.disablekey=true")
+            "-daemon", "-port", project.zapConfig.proxyPort, "-config", "api.key=${project.zapConfig.apiKey}")
 
         builder.directory(new File(workingDir))
         logger.info "Running ZAP using ${builder.command()} in ${builder.directory()}"

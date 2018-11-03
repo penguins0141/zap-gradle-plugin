@@ -9,8 +9,9 @@ class ZapStop extends DefaultTask {
     void stopZap() {
         if (project.zapConfig.zapProc != null)
         {
-            // Kill the process after waiting 1ms. The Process API doesn't expose kill directly.
-            project.zapConfig.zapProc.waitForOrKill(1)
+            project.zapConfig.api().core.shutdown()
+            // Kill the process after waiting. The Process API doesn't expose kill directly.
+            project.zapConfig.zapProc.waitForOrKill(5000)
         }
     }
 }
