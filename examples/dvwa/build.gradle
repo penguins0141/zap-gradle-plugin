@@ -1,0 +1,67 @@
+import org.apache.http.client.utils.URLEncodedUtils
+import org.apache.http.message.BasicNameValuePair
+
+import java.nio.charset.Charset
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.patdouble.gradle:zap-gradle-plugin:2.0-SNAPSHOT'
+        classpath 'org.apache.httpcomponents:httpclient:4.5.3'
+    }
+}
+
+apply plugin: 'zap'
+
+zapConfig {
+    applicationUrl = 'http://localhost:8095'
+    activeScanTimeout = "0"
+}
+
+task zapSetup(dependsOn: zapStart) {
+    doLast {
+        zapConfig.api {
+            // based on https://github.com/zaproxy/zaproxy/issues/2093
+            project.ext.contextId = context.newContext(project.name).value
+            context.includeInContext(project.name, "\\Qhttp://localhost:8095\\E.*")
+            context.excludeFromContext(project.name, "\\Qhttp://localhost:8095/login.php\\E")
+            context.excludeFromContext(project.name, "\\Qhttp://localhost:8095/logout.php\\E")
+            context.excludeFromContext(project.name, "\\Qhttp://localhost:8095/setup.php\\E")
+            context.excludeFromContext(project.name, "\\Qhttp://localhost:8095/security.php\\E")
+            context.excludeFromContext(project.name, "\\Qhttp://localhost:8095/vulnerabilities/csrf\\E.*")
+            logger.info "Context ID = ${project.ext.contextId}"
+
+            if (!(delegate.script.listScripts().items.find { it.getStringValue('name') == 'dvwa-auth' })) {
+                delegate.script.load('dvwa-auth', 'authentication', 'Oracle Nashorn', project.file('src/main/resources/auth.js').absolutePath, 'dvwa auth', (Charset) null)
+            }
+
+            String scriptBasedAuthParams = URLEncodedUtils.format([
+                    new BasicNameValuePair('scriptName', 'dvwa-auth'),
+                    new BasicNameValuePair('Login URL', 'http://localhost:8095/login.php'),
+                    new BasicNameValuePair('CSRF Field', 'user_token'),
+                    new BasicNameValuePair('POST Data', 'username={%username%}&password={%password%}&Login=Login&user_token={%user_token%}')
+            ], "UTF-8")
+
+            logger.info "scriptBaseAuthParams = ${scriptBasedAuthParams}"
+            authentication.setAuthenticationMethod(project.ext.contextId, 'scriptBasedAuthentication', scriptBasedAuthParams)
+            authentication.setLoggedInIndicator(project.ext.contextId, '\\Q<a href="logout.php">Logout</a>\\E')
+            authentication.setLoggedOutIndicator(project.ext.contextId, '(?:Location: [./]*login\\.php)|(?:\\Q<form action="login.php" method="post">\\E)')
+
+            project.ext.adminId = users.newUser(project.ext.contextId, 'Administrator').value
+            logger.info "Admin ID = ${project.ext.adminId}"
+            users.setAuthenticationCredentials(project.ext.contextId, project.ext.adminId, "Username=admin&Password=password")
+            users.setUserEnabled(project.ext.contextId, project.ext.adminId, "true")
+
+            forcedUser.setForcedUser(project.ext.contextId, project.ext.adminId)
+            forcedUser.setForcedUserModeEnabled(true)
+
+            spider.setOptionAcceptCookies(true)
+        }
+    }
+}
+zapSpider.dependsOn zapSetup
+zapAjaxSpider.dependsOn zapSetup
+zapActiveScan.dependsOn zapSetup
+zapStop.mustRunAfter zapSetup

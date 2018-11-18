@@ -11,22 +11,28 @@ import org.zaproxy.clientapi.core.ClientApi
  */
 @Slf4j
 class ZapSpider extends DefaultTask implements ZapTaskHelper {
+    @SuppressWarnings('LineLength')
+    ZapSpider() {
+        group = ZapPlugin.GROUP
+        description = 'Runs the ZAP spider against zapConfig.applicationUrl.'
+    }
+
     @TaskAction
-    @SuppressWarnings("UnusedMethod")
+    @SuppressWarnings('UnusedMethod')
     void activeScan() {
         ClientApi zap = project.zapConfig.api()
         ProgressLogger progress = createProgressLogger()
         progress.start("Spidering ${project.zapConfig.applicationUrl}", 'initializing')
 
-        String scanId = zap.spider.scan(project.zapConfig.applicationUrl, null, "true", null, "true").value
+        String scanId = zap.spider.scan(project.zapConfig.applicationUrl, null, 'true', project.name, 'false').value
         logger.debug "Spider scan id = ${scanId}"
         if (scanId) {
-            waitForCompletion(zap, progress, project.zapConfig.activeScanTimeout as int,
+            waitForCompletion(progress, project.zapConfig.activeScanTimeout as int,
                     { zap.spider.status(scanId).value as int },
                     { zap.spider.results(scanId).items.size() as String }
             )
 
-            logger.debug "Spider results ${zap.spider.results(scanId).toString(0)}"
+            logger.info "Spider results ${zap.spider.results(scanId).toString(0)}"
         } else {
             progress.completed('failed', true)
         }

@@ -12,14 +12,14 @@ import org.gradle.api.Project
 import org.gradle.api.Plugin
 
 class ZapPlugin implements Plugin<Project> {
-    final String GROUP = 'verification'
+    final static String GROUP = 'verification'
 
     void apply(Project target) {
-        target.extensions.create("zapConfig", ZapPluginExtension)
+        target.extensions.create('zapConfig', ZapPluginExtension)
 
-        def zapDir = "${target.gradle.gradleUserHomeDir}/zap/${target.extensions.zapConfig.version}"
-        def zapInstallDir = "${zapDir}/ZAP_${target.extensions.zapConfig.version}"
-        target.getTasks().create('zapDownload', Download) {
+        CharSequence zapDir = "${target.gradle.gradleUserHomeDir}/zap/${target.extensions.zapConfig.version}"
+        CharSequence zapInstallDir = "${zapDir}/ZAP_${target.extensions.zapConfig.version}"
+        target.tasks.create('zapDownload', Download) {
             CharSequence downloadUrl = "https://github.com/zaproxy/zaproxy/releases/download/${target.extensions.zapConfig.version}/ZAP_${target.extensions.zapConfig.version}_Crossplatform.zip"
 
             outputs.dir zapDir
@@ -40,9 +40,7 @@ class ZapPlugin implements Plugin<Project> {
             }
         }
 
-        target.getTasks().create('zapStart', ZapStart) {
-            group = GROUP
-            description = 'Starts the ZAP daemon.'
+        target.tasks.create('zapStart', ZapStart) {
             finalizedBy 'zapStop'
             dependsOn 'zapDownload'
             doFirst {
@@ -52,40 +50,37 @@ class ZapPlugin implements Plugin<Project> {
             }
         }
 
-        target.getTasks().create('zapStop', ZapStop) {
-            group = GROUP
-            description = 'Stops the ZAP server ONLY if it has been started during this gradle process. Otherwise does nothing'
+        target.tasks.create('zapStop', ZapStop) {
             mustRunAfter target.tasks.zapStart
             mustRunAfter 'zapActiveScan'
             mustRunAfter 'zapReport'
         }
 
-        target.getTasks().create('zapSpider', ZapSpider) {
-            group = GROUP
-            description = 'Runs the ZAP spider against zapConfig.applicationUrl.'
+        target.tasks.create('zapSpider', ZapSpider) {
             dependsOn target.tasks.zapStart
             finalizedBy target.tasks.zapStop
         }
 
-        target.getTasks().create('zapActiveScan', ZapActiveScan) {
-            group = GROUP
-            description = 'Runs the ZAP active scanner against zapConfig.applicationUrl. It is recommended that this be done after any automated tests have completed so that the proxy is aware of those URLs.'
+        target.tasks.create('zapAjaxSpider', ZapAjaxSpider) {
+            dependsOn target.tasks.zapStart
+            finalizedBy target.tasks.zapStop
+        }
+
+        target.tasks.create('zapActiveScan', ZapActiveScan) {
             dependsOn target.tasks.zapStart
             finalizedBy target.tasks.zapStop
             mustRunAfter target.tasks.zapSpider
         }
 
-        target.getTasks().create('zapReport', ZapReport) {
-            group = GROUP
-            description = 'Generates a report with the current ZAP alerts for applicationUrl at reportOutputPath with type remoteFormat (HTML, JSON, or XML)'
+        target.tasks.create('zapReport', ZapReport) {
             dependsOn target.tasks.zapStart
             finalizedBy target.tasks.zapStop
             mustRunAfter target.tasks.zapSpider, target.tasks.zapActiveScan
         }
+
+        target.tasks.create('zapInfo', ZapInfo) {
+            dependsOn target.tasks.zapStart
+            finalizedBy target.tasks.zapStop
+        }
     }
 }
-
-
-
-
-

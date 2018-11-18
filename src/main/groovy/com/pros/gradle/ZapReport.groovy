@@ -9,15 +9,19 @@ import org.zaproxy.clientapi.core.ClientApi
  * Grabs the alert report from the running ZAP instances.
  */
 class ZapReport extends DefaultTask {
+    @SuppressWarnings('LineLength')
+    ZapReport() {
+        group = ZapPlugin.GROUP
+        description = 'Generates a report with the current ZAP alerts for applicationUrl at reportOutputPath with type remoteFormat (HTML, JSON, or XML)'
+    }
+
     @TaskAction
-    @SuppressWarnings("UnusedMethod")
+    @SuppressWarnings('UnusedMethod')
     void outputReport() {
         ClientApi zap = project.zapConfig.api()
-        if (!project.zapConfig.reportFormat) {
-            project.zapConfig.reportFormat = 'json,xml,html,md'
-        }
         new File(project.buildDir, project.zapConfig.reportOutputPath).parentFile.mkdirs()
-        project.zapConfig.reportFormat.toLowerCase().split(/[^a-z]+/).asType(List).unique().each { format ->
+        String reportFormat = project.zapConfig.reportFormat ?: 'json,xml,html,md'
+        reportFormat.toLowerCase().split(/[^a-z]+/).asType(List).unique().each { format ->
             switch (format) {
                 case 'json':
                     new File(project.buildDir, "${project.zapConfig.reportOutputPath}.json").bytes = zap.core.jsonreport()
