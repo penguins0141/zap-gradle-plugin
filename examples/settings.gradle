@@ -1,0 +1,2 @@
+includeBuild rootProject.projectDir.parentFile
+include 'webgoat', 'dvwa'

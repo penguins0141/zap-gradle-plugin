@@ -1,34 +1,103 @@
 /**
- * Copyright (c) 2013, PROS Inc. All right reserved.
+ * Copyright (c) 2018, Patrick Double. All right reserved.
  *
  * Released under BSD-3 style license.
  * See http://opensource.org/licenses/BSD-3-Clause
  */
 
-apply plugin: 'groovy'
-
-dependencies {
-    compile gradleApi()
-    compile localGroovy()
+plugins {
+    id 'com.gradle.build-scan' version '1.16'
+    id 'groovy'
+    id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '0.10.0'
+    id 'com.github.ben-manes.versions' version '0.20.0'
+    id 'ru.vyarus.quality' version '3.2.0'
+    id 'com.bmuschko.clover' version '2.2.1'
+    id 'org.sonarqube' version '2.6.2'
 }
 
-apply plugin: 'maven'
+apply plugin: 'idea'
 
 repositories {
     mavenCentral()
 }
 
-group = 'com.pros.gradle'
-version = '1.0-SNAPSHOT'
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    compile 'org.zaproxy:zap-clientapi:1.6.0'
+    compile 'de.undercouch:gradle-download-task:3.4.3'
+    testCompile 'junit:junit:4.12'
+    testCompile gradleApi()
+    clover 'org.openclover:clover:4.3.1'
+}
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: uri('../repo'))
+description = "Automate web application dynamic security scans using OWASP ZAP"
+group = 'com.patdouble'
+version = '2.0-SNAPSHOT'
+
+// Set product version if tag is given on CI
+System.getenv('CIRCLE_TAG')?.eachMatch(/^[0-9]+(\.[0-9]+)*$/) { m -> project.version = m[0] }
+
+buildScan {
+    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+    licenseAgree = 'yes'
+}
+
+pluginBundle {
+    website = 'https://github.com/double16/zap-gradle-plugin'
+    vcsUrl = 'https://github.com/double16/zap-gradle-plugin.git'
+    description = project.description
+    tags = ['security', 'devsecops']
+
+    plugins {
+        zapPlugin {
+            id = 'com.patdouble.zap'
+            displayName = project.description
         }
     }
 }
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            groupId rootProject.group
+            artifactId rootProject.name
+            pom.withXml {
+                asNode().children().last() + {
+                    resolveStrategy = DELEGATE_FIRST
+                    name rootProject.name
+                    description rootProject.description
+                }
+            }
+        }
+    }
+}
+
+task install(dependsOn: 'publishToMavenLocal')
+
+// Set product version if tag is given on CI
+System.getenv('CIRCLE_TAG')?.eachMatch(/^[0-9]+(\.[0-9]+)*$/) { m -> project.version = m[0] }
+
+tasks.publishPlugins.doFirst {
+    assert !project.version.contains('SNAPSHOT')
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.8'
+    gradleVersion = '4.10.2'
+}
+
+quality {
+    strict = false
+}
+
+clover {
+    report {
+        xml = true
+        html = true
+    }
 }

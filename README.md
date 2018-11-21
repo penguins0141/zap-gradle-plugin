@@ -1,41 +1,86 @@
-## Getting the ZAP gradle plugin
+# ZAP Gradle Plugin
 
-One of the open issues with this project is getting it into maven central. For now, you have to build it yourself, which is fortunately simple.
+Automate web application dynamic security scans using OWASP ZAP.
 
-```bash
-git clone http://github.com/PROSPricing/zap-gradle-plugin
-cd zap-gradle-plugin
-./gradlew jar uploadArchives
-```
+Originally based off plugin found here: https://github.com/PROSPricing/zap-gradle-plugin
 
-Retrieve the produced jar file from ../repo/com/pros/gradle.
-
-## Integrating the Plugin With Your Build
-
-Download ZAP from https://github.com/zaproxy/zaproxy/wiki/Downloads and install it on your system. The plugin does not currently bundle ZAP, but has been tested with versions 2.2.2 and 2.2.1.
-
-Update your project's build.gradle file to contain the following:
+## TL;DR
 
 ```groovy
-apply plugin: 'zap'
-
-zapConfig {
-    // The directory location containing the ZAP install.
-    zapInstallDir = "/path/to/ZAP/install/directory"
-    // The URL of the application which ZAP should run active scanning against and generate issue reports for.
-    // This should be the URL of the application that you are testing. This is used to generate the report as well
-    // as to trigger the active scanning.
-    applicationUrl = "http://attackme.example.com:8080"
+plugins { 
+    id 'com.patdouble.gradle.zap'
 }
 
+zapConfig {
+    applicationUrl = "http://attackme.example.com:8080"
+}
+```
+
+```bash
+$ ./gradlew zapSpider zapActiveScan zapReport
+$ ls -1 build/reports/zap
+zapReport.err.log
+zapReport.html
+zapReport.json
+zapReport.md
+zapReport.out.log
+zapReport.xml
+```
+
+## Getting the Plugin
+
+The plugin is available from the Gradle plugins repository using the usual methods.
+
+```groovy
+plugins {
+    id 'com.patdouble.zap'
+}
+```
+
+or
+
+```groovy
 buildscript {
-    repositories {
-        // Path to a maven repository that contains the plguin jar. Feel free to link the jar however you want.
-        mavenRepo(url: "uri/of/repo/containing/plugin")
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
     }
-    dependencies {
-        classpath 'com.pros.gradle:zap-gradle-plugin:1.0-SNAPSHOT'
-    }
+  }
+  dependencies {
+    classpath "gradle.plugin.com.patdouble:zap-gradle-plugin:2.+"
+  }
+}
+
+apply plugin: "com.patdouble.zap"
+```
+
+## Finding the ZAP Application
+
+By default the plugin will download version 2.7.0 of OWASP ZAP and use it. You can specify a version by including the following
+in your `build.gradle`:
+
+```groovy
+zapConfig {
+    version = "2.6.0"
+}
+```
+
+If you'd rather use an already installed version, configure the install directory. The directory must include either
+`zap.sh` or `zap.bat`, the script used to start ZAP.
+
+```groovy
+zapConfig {
+    zapInstallDir =  "/path/to/ZAP/install/directory"
+}
+```
+
+## Configure Your Application
+
+At a minimum you must configure the URL of your application that ZAP is to scan.
+
+```groovy
+zapConfig {
+    applicationUrl = "http://attackme.example.com:8080"
 }
 ```
 
@@ -43,14 +88,16 @@ buildscript {
 There are a few optional properties that may be specified within the zapConfig section of the gradle file to further tune your use of ZAP.
 
 ```groovy
-    // The port on which ZAP should run. Defaults to 54300.
+zapConfig {
+    // The port on which ZAP should run. Defaults to a free port.
     proxyPort = "9999"
-    // The format of the output report. Acceptable formats are JSON, HTML, and XML. Defaults to JSON.
+    // The format of the output report. Acceptable formats are JSON, HTML, MD and XML. Defaults to all.
     reportFormat = "JSON"
-    // The path of the report file to write from the zapReport task. This path must be writable, subdirs will NOT be created.
+    // The path of the report file to write from the zapReport task. This path must be writable, subdirs will be created.
     reportOutputPath = "report"
-    // The timeout for the active scanner process. How long should we keep polling for scan completion in minutes. Defaults to 30.
+    // The timeout for the active scanner process. Defaults to 30 seconds.
     activeScanTimeout = "30"
+}
 ```
 
 ## Running ZAP with Tests
@@ -83,7 +130,7 @@ Net::HTTP.new('attackme.example.com', nil, proxy_addr, proxy_port).start { |http
 ```
 
 ## LICENSE
-Copyright (c) 2013, PROS Inc. All right reserved.
+Copyright (c) 2018, Patrick Double. All right reserved.
 
 Released under BSD-3 style license.
 
