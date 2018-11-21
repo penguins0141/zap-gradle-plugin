@@ -1,5 +1,4 @@
 /**
- * Copyright (c) 2013, PROS Inc. All right reserved.
  * Copyright (c) 2018, Patrick Double. All right reserved.
  *
  * Released under BSD-3 style license.
@@ -34,7 +33,7 @@ dependencies {
 }
 
 description = "Automate web application dynamic security scans using OWASP ZAP"
-group = 'com.patdouble.gradle'
+group = 'com.patdouble'
 version = '2.0-SNAPSHOT'
 
 // Set product version if tag is given on CI
@@ -94,4 +93,11 @@ task wrapper(type: Wrapper) {
 
 quality {
     strict = false
+}
+
+clover {
+    report {
+        xml = true
+        html = true
+    }
 }

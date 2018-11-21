@@ -1,4 +1,4 @@
-package com.pros.gradle
+package com.patdouble.gradle.zap
 
 import de.undercouch.gradle.tasks.download.Download
 
@@ -26,7 +26,7 @@ class ZapPluginTest {
 
     @Test
     void testApplyPluginByName() {
-        project.apply plugin: 'zap'
+        project.apply plugin: 'com.patdouble.zap'
         verifyPlugin()
     }
 

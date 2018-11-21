@@ -1,4 +1,4 @@
-package com.pros.gradle
+package com.patdouble.gradle.zap
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction

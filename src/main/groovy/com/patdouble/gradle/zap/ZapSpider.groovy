@@ -1,4 +1,4 @@
-package com.pros.gradle
+package com.patdouble.gradle.zap
 
 import groovy.util.logging.Slf4j
 import org.gradle.api.DefaultTask

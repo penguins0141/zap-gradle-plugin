@@ -1,4 +1,4 @@
-package com.pros.gradle
+package com.patdouble.gradle.zap
 
 import groovy.util.logging.Slf4j
 import org.apache.tools.ant.taskdefs.condition.Os
@@ -49,6 +49,8 @@ class ZapStart extends DefaultTask implements ZapTaskHelper {
                 project.zapConfig.proxyPort as int,
                 project.zapConfig.apiKey as String)
         zap.waitForSuccessfulConnectionToZap(120)
+
+        zap.core.setMode('protect')
     }
 
     protected String resolvePort() {

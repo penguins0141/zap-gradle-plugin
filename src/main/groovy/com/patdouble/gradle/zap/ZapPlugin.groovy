@@ -1,11 +1,10 @@
 /**
- * Copyright (c) 2013, PROS Inc. All right reserved.
  * Copyright (c) 2018, Patrick Double. All right reserved.
  *
  * Released under BSD-3 style license.
  * See http://opensource.org/licenses/BSD-3-Clause
  */
-package com.pros.gradle
+package com.patdouble.gradle.zap
 
 import de.undercouch.gradle.tasks.download.Download
 import org.gradle.api.Project

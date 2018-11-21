@@ -1,4 +1,4 @@
-package com.pros.gradle
+package com.patdouble.gradle.zap
 
 import org.zaproxy.clientapi.core.ClientApi
 

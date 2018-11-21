@@ -1,6 +1,8 @@
 import org.apache.http.client.utils.URLEncodedUtils
 import org.apache.http.message.BasicNameValuePair
 
+import groovyx.net.http.HttpBuilder
+
 import java.nio.charset.Charset
 
 buildscript {
@@ -8,19 +10,73 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.patdouble.gradle:zap-gradle-plugin:2.0-SNAPSHOT'
+        classpath 'com.patdouble:zap-gradle-plugin:2.0-SNAPSHOT'
         classpath 'org.apache.httpcomponents:httpclient:4.5.3'
+        classpath 'io.github.http-builder-ng:http-builder-ng-core:1.0.3'
     }
 }
 
-apply plugin: 'zap'
+plugins {
+    id "com.avast.gradle.docker-compose" version "0.8.12"
+}
+
+apply plugin: 'com.patdouble.zap'
 
 zapConfig {
     applicationUrl = 'http://localhost:8095'
     activeScanTimeout = "0"
 }
 
-task zapSetup(dependsOn: zapStart) {
+def userTokenFromHtml(html) {
+    if (html instanceof byte[]) {
+        html = new String(html, 'UTF-8')
+    }
+    def m = (~/<input\s+type=['"]hidden['"]\s+name=['"]user_token['"]\s+value=['"](.+?)['"]/).matcher(html as String)
+    m.find() ? m.group(1) : ''
+}
+
+task dvwaSetup {
+    doLast {
+        def dvwa = HttpBuilder.configure {
+            request.uri = 'http://localhost:8095'
+        }
+        def loginForm = dvwa.get {
+            request.uri.path = '/login.php'
+        }
+        dvwa.post {
+            request.uri.path = '/login.php'
+            request.contentType = 'application/x-www-form-urlencoded'
+            request.body = [username: 'admin',
+                            password: 'password',
+                            Login: 'Login',
+                            user_token: userTokenFromHtml(loginForm)]
+        }
+
+        def setupForm = dvwa.get {
+            request.uri.path = '/setup.php'
+        }
+        dvwa.post {
+            request.uri.path = '/setup.php'
+            request.contentType = 'application/x-www-form-urlencoded'
+            request.body = [create_db: 'Create / Reset Database',
+                            user_token: userTokenFromHtml(setupForm)]
+        }
+
+        def securityForm = dvwa.get {
+            request.uri.path = '/security.php'
+        }
+        dvwa.post {
+            request.uri.path = '/security.php'
+            request.contentType = 'application/x-www-form-urlencoded'
+            request.body = [security: 'low',
+                            seclev_submit: 'Submit',
+                            user_token: userTokenFromHtml(securityForm)]
+        }
+    }
+}
+dockerCompose.isRequiredBy(dvwaSetup)
+
+task zapSetup(dependsOn: [zapStart, dvwaSetup]) {
     doLast {
         zapConfig.api {
             // based on https://github.com/zaproxy/zaproxy/issues/2093
@@ -65,3 +121,8 @@ zapSpider.dependsOn zapSetup
 zapAjaxSpider.dependsOn zapSetup
 zapActiveScan.dependsOn zapSetup
 zapStop.mustRunAfter zapSetup
+
+dockerCompose.isRequiredBy(zapSetup)
+dockerCompose.isRequiredBy(zapSpider)
+dockerCompose.isRequiredBy(zapAjaxSpider)
+dockerCompose.isRequiredBy(zapActiveScan)
