@@ -75,3 +75,7 @@ dockerCompose.isRequiredBy(zapSetup)
 dockerCompose.isRequiredBy(zapSpider)
 dockerCompose.isRequiredBy(zapAjaxSpider)
 dockerCompose.isRequiredBy(zapActiveScan)
+
+task check(dependsOn: [zapSpider, zapAjaxSpider, zapActiveScan, zapReport]) {
+    group = 'verification'
+}

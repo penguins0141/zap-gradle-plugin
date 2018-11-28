@@ -36,8 +36,11 @@ class ZapStart extends DefaultTask implements ZapTaskHelper {
                 '-daemon', '-port', project.zapConfig.proxyPort, '-config', "api.key=${project.zapConfig.apiKey}" as String ]
         command.addAll(project.zapConfig.parameters.collect { it as String })
         ProcessBuilder builder = new ProcessBuilder(command)
-        builder.redirectOutput(new File(project.buildDir, "${project.zapConfig.reportOutputPath}.out.log"))
-        builder.redirectError(new File(project.buildDir, "${project.zapConfig.reportOutputPath}.err.log"))
+        File stdout = new File(project.buildDir, "${project.zapConfig.reportOutputPath}.out.log")
+        File stderr = new File(project.buildDir, "${project.zapConfig.reportOutputPath}.err.log")
+        stdout.parentFile.mkdirs()
+        builder.redirectOutput(stdout)
+        builder.redirectError(stderr)
 
         builder.directory(new File(workingDir))
         logger.info "Running ZAP using ${builder.command()} in ${builder.directory()}"

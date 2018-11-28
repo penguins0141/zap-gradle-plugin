@@ -68,13 +68,13 @@ class ZapPlugin implements Plugin<Project> {
         target.tasks.create('zapActiveScan', ZapActiveScan) {
             dependsOn target.tasks.zapStart
             finalizedBy target.tasks.zapStop
-            mustRunAfter target.tasks.zapSpider
+            mustRunAfter target.tasks.zapSpider, target.tasks.zapAjaxSpider
         }
 
         target.tasks.create('zapReport', ZapReport) {
             dependsOn target.tasks.zapStart
             finalizedBy target.tasks.zapStop
-            mustRunAfter target.tasks.zapSpider, target.tasks.zapActiveScan
+            mustRunAfter target.tasks.zapSpider, target.tasks.zapAjaxSpider, target.tasks.zapActiveScan
         }
 
         target.tasks.create('zapInfo', ZapInfo) {
