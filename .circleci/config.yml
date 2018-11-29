@@ -28,7 +28,9 @@ jobs:
 
       - run:
           name: ZAP Download and Run Check
-          command: ./gradlew zapDownload zapInfo
+          command: |
+            cd examples
+            ./gradlew :webgoat:zapDownload :webgoat:zapInfo
 
       - deploy:
           name: Deploy to Gradle Plugins
