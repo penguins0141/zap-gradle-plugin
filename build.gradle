@@ -6,7 +6,7 @@
  */
 
 plugins {
-    id 'com.gradle.build-scan' version '1.16'
+    id 'com.gradle.build-scan' version '2.0.2'
     id 'groovy'
     id 'maven-publish'
     id 'com.gradle.plugin-publish' version '0.10.0'
@@ -40,8 +40,8 @@ version = '2.0-SNAPSHOT'
 System.getenv('CIRCLE_TAG')?.eachMatch(/^[0-9]+(\.[0-9]+)*$/) { m -> project.version = m[0] }
 
 buildScan {
-    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-    licenseAgree = 'yes'
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceUrl = 'yes'
 }
 
 pluginBundle {

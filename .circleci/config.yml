@@ -26,6 +26,10 @@ jobs:
           path: ./build/reports/clover
           destination: coverage
 
+      - run:
+          name: ZAP Download and Run Check
+          command: ./gradlew zapDownload zapInfo
+
       - deploy:
           name: Deploy to Gradle Plugins
           command: |
