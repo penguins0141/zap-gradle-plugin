@@ -1,0 +1,64 @@
+import org.apache.http.client.utils.URLEncodedUtils
+import org.apache.http.message.BasicNameValuePair
+
+import groovyx.net.http.HttpBuilder
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.patdouble:zap-gradle-plugin:2.+'
+        classpath 'org.apache.httpcomponents:httpclient:4.5.3'
+        classpath 'io.github.http-builder-ng:http-builder-ng-core:1.0.3'
+    }
+}
+
+plugins {
+    id "com.avast.gradle.docker-compose" version "0.8.12"
+}
+
+apply plugin: 'com.patdouble.zap'
+
+zapConfig {
+    applicationUrl = 'http://localhost:3000'
+    activeScanTimeout = "0"
+}
+
+task juiceStopSetup {
+    doLast {
+        def juicer = HttpBuilder.configure {
+            request.uri = 'http://localhost:3000/rest'
+        }
+        juicer.post {
+            request.uri.path = '/user/login'
+            request.contentType = 'application/json'
+            request.body = [email: 'admin@juice-sh.op', password: 'admin123']
+        }
+    }
+}
+
+task zapSetup(dependsOn: [zapStart, juiceStopSetup]) {
+    doLast {
+        zapConfig.api {
+            project.ext.contextId = context.newContext(project.name).value
+            context.includeInContext(project.name, "\\Qhttp://localhost:3000")
+            logger.info "Context ID = ${project.ext.contextId}"
+
+            spider.setOptionAcceptCookies(true)
+        }
+    }
+}
+zapSpider.dependsOn zapSetup
+zapAjaxSpider.dependsOn zapSetup
+zapActiveScan.dependsOn zapSetup
+zapStop.mustRunAfter zapSetup
+
+dockerCompose.isRequiredBy(zapSetup)
+dockerCompose.isRequiredBy(zapSpider)
+dockerCompose.isRequiredBy(zapAjaxSpider)
+dockerCompose.isRequiredBy(zapActiveScan)
+
+task check(dependsOn: [zapSpider, zapAjaxSpider, zapActiveScan, zapReport]) {
+    group = 'verification'
+}
