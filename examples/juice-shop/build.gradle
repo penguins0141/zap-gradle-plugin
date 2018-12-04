@@ -28,10 +28,10 @@ zapConfig {
 task juiceStopSetup {
     doLast {
         def juicer = HttpBuilder.configure {
-            request.uri = 'http://localhost:3000/rest'
+            request.uri = 'http://localhost:3000'
         }
         juicer.post {
-            request.uri.path = '/user/login'
+            request.uri.path = '/rest/user/login'
             request.contentType = 'application/json'
             request.body = [email: 'admin@juice-sh.op', password: 'admin123']
         }
